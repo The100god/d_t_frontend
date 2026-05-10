@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --color-midnight: #020617;
+  --color-glass-bg: rgba(255, 255, 255, 0.05);
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-vibrant-primary: #8b5cf6;
+  --color-vibrant-secondary: #3b82f6;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-midnight text-slate-200 min-h-screen antialiased selection:bg-vibrant-primary/30;
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-glass-bg backdrop-blur-md border border-glass-border rounded-2xl transition-all duration-300;
+  }
+
+  .glass-card-hover {
+    @apply hover:bg-white/[0.08] hover:border-white/20 hover:shadow-2xl hover:shadow-vibrant-primary/10;
+  }
+
+  .btn-primary {
+    @apply px-6 py-2.5 bg-vibrant-primary text-white rounded-xl font-medium shadow-lg shadow-vibrant-primary/20 hover:bg-vibrant-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-2.5 bg-white/10 text-white border border-white/10 rounded-xl font-medium hover:bg-white/20 transition-all;
+  }
+
+  .input-field {
+    @apply w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-vibrant-primary/50 focus:border-vibrant-primary/50 transition-all;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-midnight;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-all;
+}
