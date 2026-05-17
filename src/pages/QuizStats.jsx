@@ -76,7 +76,33 @@ const QuizStats = () => {
     sub.student?.stream?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-white">Loading Analytics...</div>;
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 max-w-6xl space-y-10 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="space-y-3">
+          <div className="h-10 skeleton w-1/3" />
+          <div className="h-4 skeleton w-1/4" />
+        </div>
+
+        {/* Quick Stats Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="h-28 skeleton" />
+          <div className="h-28 skeleton" />
+          <div className="h-28 skeleton" />
+        </div>
+
+        {/* Chart & Insights Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 h-72 skeleton" />
+          <div className="h-72 skeleton" />
+        </div>
+
+        {/* Table Container Skeleton */}
+        <div className="h-64 skeleton" />
+      </div>
+    );
+  }
 
   const totalMarks = quiz?.totalMarks || 1;
   const avgScore = (submissions.length > 0) 

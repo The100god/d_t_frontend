@@ -84,7 +84,29 @@ const AttemptQuiz = () => {
     }
   };
 
-  if (!quiz) return <div className="min-h-screen flex items-center justify-center text-white">Loading Quiz...</div>;
+  if (!quiz) {
+    return (
+      <div className="container mx-auto p-6 max-w-4xl min-h-screen flex flex-col space-y-8 animate-pulse">
+        {/* Header Section */}
+        <div className="flex justify-between items-center">
+          <div className="space-y-3">
+            <div className="h-8 skeleton w-64 animate-pulse" />
+            <div className="h-4 skeleton w-32 animate-pulse" />
+          </div>
+          <div className="h-10 skeleton w-28 animate-pulse" />
+        </div>
+
+        {/* Question Area Skeleton */}
+        <div className="flex-grow h-96 skeleton animate-pulse" />
+
+        {/* Footer Buttons Skeleton */}
+        <div className="flex justify-between">
+          <div className="h-10 skeleton w-24 animate-pulse" />
+          <div className="h-10 skeleton w-24 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   const q = quiz.questions[currentQuestion];
   const formatTime = (seconds) => {

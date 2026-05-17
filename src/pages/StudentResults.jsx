@@ -60,7 +60,30 @@ const StudentResults = () => {
     fetchResults();
   }, [id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-white">Loading Results...</div>;
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 max-w-4xl space-y-8 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-3 flex-grow">
+            <div className="h-8 skeleton w-1/3" />
+            <div className="h-4 skeleton w-1/4" />
+          </div>
+          <div className="h-10 skeleton w-24" />
+        </div>
+
+        {/* Score Card Skeleton */}
+        <div className="h-48 skeleton animate-pulse" />
+
+        {/* Questions List Skeleton */}
+        <div className="space-y-6">
+          <div className="h-40 skeleton animate-pulse" />
+          <div className="h-40 skeleton animate-pulse" />
+          <div className="h-40 skeleton animate-pulse" />
+        </div>
+      </div>
+    );
+  }
   if (!submission) return <div className="min-h-screen flex items-center justify-center text-white">Result not found.</div>;
 
   // SECURITY: Students can only view results if status is 'graded'

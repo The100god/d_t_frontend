@@ -11,6 +11,7 @@ const Dashboard = () => {
   const [submissions, setSubmissions] = useState([]);
   const [adminStats, setAdminStats] = useState({ totalParticipants: 0, completionRate: 0, totalQuizzes: 0 });
   const [allSubmissions, setAllSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     title: '',
@@ -53,6 +54,8 @@ const Dashboard = () => {
       }
     } catch (err) {
       console.error('Error fetching data:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -243,6 +246,40 @@ const Dashboard = () => {
 
   const filteredStudentSubmissions = getFilteredStudentSubmissions();
   const filteredAdminSubmissions = getFilteredAdminSubmissions();
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 max-w-6xl space-y-8 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex justify-between items-center">
+          <div className="space-y-3">
+            <div className="h-10 skeleton w-64" />
+            <div className="h-4 skeleton w-48" />
+          </div>
+          {user?.role === 'admin' && <div className="h-12 skeleton w-44" />}
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="h-24 skeleton" />
+          <div className="h-24 skeleton" />
+          <div className="h-24 skeleton" />
+        </div>
+
+        {/* Main Section Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="h-12 skeleton w-full" />
+            <div className="h-80 skeleton w-full" />
+          </div>
+          <div className="space-y-6">
+            <div className="h-12 skeleton w-full" />
+            <div className="h-80 skeleton w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">

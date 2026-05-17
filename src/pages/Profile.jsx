@@ -21,7 +21,14 @@ const Profile = () => {
     }
   };
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="container mx-auto p-6 max-w-2xl space-y-8 animate-pulse">
+        <div className="h-10 skeleton w-1/3" />
+        <div className="h-96 skeleton w-full animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-2xl">
