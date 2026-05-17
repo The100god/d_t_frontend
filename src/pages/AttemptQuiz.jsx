@@ -12,6 +12,8 @@ const AttemptQuiz = () => {
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [drawingBoards, setDrawingBoards] = useState({});
+  const [activeBoardIdx, setActiveBoardIdx] = useState({});
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -139,19 +141,118 @@ const AttemptQuiz = () => {
           </div>
         )}
 
-        {q.type === 'DRAWING' && (
-          <DrawingCanvas 
-            onSave={async (dataUrl) => {
-              // Convert base64 to blob
+        {q.type === 'DRAWING' && (() => {
+          const boards = drawingBoards[q._id] || [{ id: 1, uploadedUrl: null }];
+          const activeIdx = activeBoardIdx[q._id] || 0;
+          const currentBoard = boards[activeIdx] || boards[0];
+
+          const handleAddBoard = () => {
+            const newBoards = [...boards, { id: Date.now(), uploadedUrl: null }];
+            setDrawingBoards(prev => ({ ...prev, [q._id]: newBoards }));
+            setActiveBoardIdx(prev => ({ ...prev, [q._id]: newBoards.length - 1 }));
+          };
+
+          const handleDeleteBoard = (idxToDelete) => {
+            if (boards.length <= 1) return;
+            const newBoards = boards.filter((_, idx) => idx !== idxToDelete);
+            setDrawingBoards(prev => ({ ...prev, [q._id]: newBoards }));
+            const nextActiveIdx = Math.max(0, activeIdx - 1);
+            setActiveBoardIdx(prev => ({ ...prev, [q._id]: nextActiveIdx }));
+            
+            const uploadedUrls = newBoards.map(b => b.uploadedUrl).filter(Boolean);
+            handleAnswerChange(q._id, uploadedUrls.join(','));
+          };
+
+          const handleSaveBoard = async (dataUrl) => {
+            try {
               const res = await fetch(dataUrl);
               const blob = await res.blob();
-              const file = new File([blob], 'drawing.png', { type: 'image/png' });
+              const file = new File([blob], `drawing_${currentBoard.id}.png`, { type: 'image/png' });
               
-              // Upload
-              handleFileUpload(q._id, file);
-            }}
-          />
-        )}
+              const formData = new FormData();
+              formData.append('image', file);
+              const uploadRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/submissions/upload`, formData);
+              const imageUrl = uploadRes.data.imageUrl;
+
+              const updatedBoards = boards.map((b, idx) => 
+                idx === activeIdx ? { ...b, uploadedUrl: imageUrl } : b
+              );
+              
+              setDrawingBoards(prev => ({ ...prev, [q._id]: updatedBoards }));
+              
+              const uploadedUrls = updatedBoards.map(b => b.uploadedUrl).filter(Boolean);
+              handleAnswerChange(q._id, uploadedUrls.join(','));
+            } catch (err) {
+              console.error('Error saving board drawing:', err);
+            }
+          };
+
+          return (
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-3">
+                {boards.map((board, idx) => (
+                  <div key={board.id} className="flex items-center gap-1.5 bg-white/5 rounded-xl p-1 pr-2 border border-white/5 animate-in fade-in zoom-in-95 duration-200">
+                    <button
+                      type="button"
+                      onClick={() => setActiveBoardIdx(prev => ({ ...prev, [q._id]: idx }))}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                        activeIdx === idx 
+                          ? 'bg-vibrant-primary text-white font-bold' 
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${board.uploadedUrl ? 'bg-emerald-500 shadow-md shadow-emerald-500/20 animate-pulse' : 'bg-slate-600'}`} />
+                        Board {idx + 1}
+                      </span>
+                    </button>
+                    {boards.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBoard(idx)}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 rounded-md transition-all cursor-pointer font-bold text-xs"
+                        title="Delete Board"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleAddBoard}
+                  className="btn-secondary px-3 py-1.5 text-xs flex items-center gap-1 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer font-semibold"
+                >
+                  + Add Board
+                </button>
+              </div>
+
+              <div key={`${q._id}_board_${currentBoard.id}`} className="space-y-4 animate-in fade-in duration-300">
+                <p className="text-sm text-slate-400 font-medium">
+                  Drawing on <span className="text-white font-bold">Board {activeIdx + 1}</span>
+                </p>
+                <DrawingCanvas 
+                  onSave={handleSaveBoard} 
+                  initialImage={currentBoard.uploadedUrl ? (currentBoard.uploadedUrl.startsWith('data:image') ? currentBoard.uploadedUrl : `${import.meta.env.VITE_API_URL}${currentBoard.uploadedUrl}`) : null}
+                />
+              </div>
+
+              {(() => {
+                const totalBoards = boards.length;
+                const savedBoards = boards.filter(b => b.uploadedUrl).length;
+                if (savedBoards > 0) {
+                  return (
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-xl text-sm font-semibold flex items-center gap-2 animate-fade-in">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                      <span>{savedBoards} / {totalBoards} board(s) saved and uploaded successfully!</span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          );
+        })()}
       </div>
 
       <div className="flex justify-between">

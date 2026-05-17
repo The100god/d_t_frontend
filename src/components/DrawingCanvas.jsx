@@ -1,13 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-const DrawingCanvas = ({ onSave }) => {
+const DrawingCanvas = ({ onSave, initialImage }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [ctx, setCtx] = useState(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    canvas.width = canvas.offsetWidth;
+    const width = canvas.offsetWidth || window.innerWidth - 64;
+    canvas.width = width;
     canvas.height = 300;
     const context = canvas.getContext('2d');
     context.lineCap = 'round';
@@ -16,21 +17,64 @@ const DrawingCanvas = ({ onSave }) => {
     setCtx(context);
   }, []);
 
-  const startDrawing = ({ nativeEvent }) => {
-    const { offsetX, offsetY } = nativeEvent;
+  useEffect(() => {
+    if (!ctx || !initialImage) return;
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = initialImage;
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      ctx.drawImage(img, 0, 0, canvasRef.current.width, canvasRef.current.height);
+    };
+  }, [ctx, initialImage]);
+
+  const getCoordinates = (e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const rect = canvas.getBoundingClientRect();
+
+    // Support Touch Events
+    const touch = (e.touches && e.touches[0]) ||
+      (e.nativeEvent && e.nativeEvent.touches && e.nativeEvent.touches[0]) ||
+      (e.changedTouches && e.changedTouches[0]);
+
+    if (touch) {
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      };
+    }
+
+    // Support Mouse Events
+    const clientX = e.clientX ?? e.nativeEvent?.clientX ?? 0;
+    const clientY = e.clientY ?? e.nativeEvent?.clientY ?? 0;
+
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  };
+
+  const startDrawing = (e) => {
+    if (e.cancelable) e.preventDefault();
+    const { x, y } = getCoordinates(e);
     ctx.beginPath();
-    ctx.moveTo(offsetX, offsetY);
+    ctx.moveTo(x, y);
     setIsDrawing(true);
   };
 
-  const draw = ({ nativeEvent }) => {
+  const draw = (e) => {
     if (!isDrawing) return;
-    const { offsetX, offsetY } = nativeEvent;
-    ctx.lineTo(offsetX, offsetY);
+    if (e.cancelable) e.preventDefault();
+    const { x, y } = getCoordinates(e);
+    ctx.lineTo(x, y);
     ctx.stroke();
   };
 
   const stopDrawing = () => {
+    if (!isDrawing) return;
     ctx.closePath();
     setIsDrawing(false);
   };
@@ -46,14 +90,17 @@ const DrawingCanvas = ({ onSave }) => {
 
   return (
     <div className="space-y-4">
-      <div className="border border-white/20 rounded-xl overflow-hidden bg-black/40">
+      <div className="border border-white/20 rounded-xl overflow-hidden bg-black/0">
         <canvas
           ref={canvasRef}
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
-          className="w-full cursor-crosshair"
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={stopDrawing}
+          className="w-full cursor-crosshair touch-none"
         />
       </div>
       <div className="flex gap-2">

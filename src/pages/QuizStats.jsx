@@ -85,6 +85,8 @@ const QuizStats = () => {
   const accuracyRate = (totalMarks > 0) ? (avgScore / totalMarks) * 100 : 0;
   const completionRate = (submissions.length > 0) ? 100 : 0; // Simplified for demo
 
+  const isLightMode = localStorage.getItem('app-mode') === 'light';
+
   const scoreDistribution = {
     labels: ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'],
     datasets: [{
@@ -97,7 +99,7 @@ const QuizStats = () => {
           return p >= min && p <= max;
         }).length;
       }),
-      backgroundColor: 'rgba(139, 92, 246, 0.5)',
+      backgroundColor: isLightMode ? 'rgba(139, 92, 246, 0.7)' : 'rgba(139, 92, 246, 0.5)',
       borderColor: '#8b5cf6',
       borderWidth: 1,
       borderRadius: 8,
@@ -110,8 +112,15 @@ const QuizStats = () => {
       legend: { display: false },
     },
     scales: {
-      y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
-      x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } }
+      y: { 
+        beginAtZero: true, 
+        grid: { color: isLightMode ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)' }, 
+        ticks: { color: isLightMode ? '#0f172a' : 'rgba(255, 255, 255, 0.5)' } 
+      },
+      x: { 
+        grid: { display: false }, 
+        ticks: { color: isLightMode ? '#0f172a' : 'rgba(255, 255, 255, 0.5)' } 
+      }
     }
   };
 
