@@ -17,6 +17,14 @@ const StudentResults = () => {
     title: ''
   });
 
+  const getFullImageUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:image')) {
+      return url;
+    }
+    return `${import.meta.env.VITE_API_URL}${url}`;
+  };
+
   const isLightMode = localStorage.getItem('app-mode') === 'light';
 
   const openLightbox = (imageStr, index = 0, title = 'Student Answer') => {
@@ -217,13 +225,38 @@ const StudentResults = () => {
 
               <h3 className="text-lg text-white font-medium mb-4">{question.text}</h3>
 
+              {question.imageHint && (
+                <div className="mb-6 max-w-md rounded-2xl overflow-hidden border border-white/10 glass-card bg-black/25">
+                  <img 
+                    src={getFullImageUrl(question.imageHint)} 
+                    alt="Question Prompt" 
+                    className="w-full max-h-48 object-contain"
+                  />
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                 <div className="space-y-2">
                   <p className="text-xs text-slate-500 uppercase tracking-widest">Your Answer</p>
                   <div className="p-4 bg-white/5 rounded-xl text-slate-200 border border-white/5">
-                    {question.type === 'MCQ' ? (
-                      question.options.find(o => o._id.toString() === studentAnswer?.optionId?.toString())?.text || 'No answer selected'
-                    ) : (
+                    {question.type === 'MCQ' ? (() => {
+                      const selectedOpt = question.options.find(o => o._id.toString() === studentAnswer?.optionId?.toString());
+                      if (!selectedOpt) return 'No answer selected';
+                      return (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                          {selectedOpt.image && (
+                            <div className="w-16 h-16 rounded-lg overflow-hidden border border-white/5 bg-black/20 shrink-0">
+                              <img 
+                                src={getFullImageUrl(selectedOpt.image)} 
+                                alt="Selected Option" 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <span className="font-semibold">{selectedOpt.text}</span>
+                        </div>
+                      );
+                    })() : (
                       studentAnswer?.textAnswer || 'No answer provided'
                     )}
                     {studentAnswer?.imageAnswer && (() => {
@@ -239,7 +272,7 @@ const StudentResults = () => {
                             title="Click to view full screen"
                           >
                             <img
-                              src={currentImage.startsWith('data:image') ? currentImage : `${import.meta.env.VITE_API_URL}${currentImage}`}
+                              src={getFullImageUrl(currentImage)}
                               alt={`Your answer - Board ${activePage + 1}`}
                               className="max-h-60 object-contain mx-auto bg-black group-hover:scale-[1.01] transition-transform duration-300"
                               key={currentImage}
@@ -293,18 +326,33 @@ const StudentResults = () => {
                 <div className="space-y-2">
                   <p className="text-xs text-slate-500 uppercase tracking-widest">Correct Solution</p>
                   <div className="p-4 bg-vibrant-primary/5 rounded-xl text-vibrant-primary border border-vibrant-primary/10">
-                    {question.type === 'MCQ' ? (
-                      question.options.find(o => o.isCorrect)?.text
-                    ) : (
+                    {question.type === 'MCQ' ? (() => {
+                      const correctOpt = question.options.find(o => o.isCorrect);
+                      if (!correctOpt) return 'No correct answer defined';
+                      return (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                          {correctOpt.image && (
+                            <div className="w-16 h-16 rounded-lg overflow-hidden border border-white/5 bg-black/20 shrink-0">
+                              <img 
+                                src={getFullImageUrl(correctOpt.image)} 
+                                alt="Correct Option" 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <span className="font-semibold">{correctOpt.text}</span>
+                        </div>
+                      );
+                    })() : (
                       <>
-                        {question.correctAnswer?.startsWith('/uploads/') || question.correctAnswer?.startsWith('data:image') ? (
+                        {question.correctAnswer?.startsWith('/uploads/') || question.correctAnswer?.startsWith('data:image') || question.correctAnswer?.startsWith('http://') || question.correctAnswer?.startsWith('https://') ? (
                           <div
                             onClick={() => openLightbox(question.correctAnswer, 0, 'Correct Solution')}
                             className="rounded-lg overflow-hidden border border-vibrant-primary/20 relative cursor-zoom-in hover:border-vibrant-primary/50 transition-all group"
                             title="Click to view full screen"
                           >
                             <img
-                              src={question.correctAnswer.startsWith('data:image') ? question.correctAnswer : `${import.meta.env.VITE_API_URL}${question.correctAnswer}`}
+                              src={getFullImageUrl(question.correctAnswer)}
                               alt="Correct solution"
                               className="max-h-60 object-contain mx-auto bg-black group-hover:scale-[1.01] transition-transform duration-300"
                             />
@@ -376,11 +424,7 @@ const StudentResults = () => {
 
             <div className="w-full h-full flex items-center justify-center relative rounded-2xl overflow-hidden border border-white/10 bg-black shadow-2xl">
               <img
-                src={
-                  lightbox.images[lightbox.activeIndex].startsWith('data:image')
-                    ? lightbox.images[lightbox.activeIndex]
-                    : `${import.meta.env.VITE_API_URL}${lightbox.images[lightbox.activeIndex]}`
-                }
+                src={getFullImageUrl(lightbox.images[lightbox.activeIndex])}
                 alt={`Full screen view - Page ${lightbox.activeIndex + 1}`}
                 className="max-w-full max-h-[70vh] object-contain transition-all duration-300 transform scale-100"
                 key={lightbox.activeIndex}

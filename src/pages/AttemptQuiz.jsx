@@ -115,6 +115,14 @@ const AttemptQuiz = () => {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
+  const getFullImageUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:image')) {
+      return url;
+    }
+    return `${import.meta.env.VITE_API_URL}${url}`;
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-4xl min-h-screen flex flex-col">
       <div className="flex justify-between items-center mb-8">
@@ -129,7 +137,17 @@ const AttemptQuiz = () => {
       </div>
 
       <div className="glass-card p-8 mb-8 flex-grow">
-        <h2 className="text-2xl font-semibold text-white mb-8">{q.text}</h2>
+        <h2 className="text-2xl font-semibold text-white mb-6">{q.text}</h2>
+
+        {q.imageHint && (
+          <div className="mb-8 max-w-lg mx-auto border border-white/10 rounded-2xl overflow-hidden glass-card">
+            <img 
+              src={getFullImageUrl(q.imageHint)} 
+              alt="Question illustration" 
+              className="w-full max-h-80 object-contain mx-auto bg-black/40"
+            />
+          </div>
+        )}
 
         {q.type === 'MCQ' && (
           <div className="space-y-4">
@@ -137,9 +155,22 @@ const AttemptQuiz = () => {
               <button
                 key={opt._id}
                 onClick={() => handleAnswerChange(q._id, opt._id)}
-                className={`w-full p-4 rounded-xl text-left border transition-all ${answers[q._id] === opt._id ? 'border-vibrant-primary bg-vibrant-primary/10 text-white' : 'border-white/10 text-slate-300 hover:bg-white/5'}`}
+                className={`w-full p-4 rounded-xl text-left border transition-all flex flex-col sm:flex-row items-center gap-4 ${
+                  answers[q._id] === opt._id 
+                    ? 'border-vibrant-primary bg-vibrant-primary/10 text-white shadow-lg shadow-vibrant-primary/5' 
+                    : 'border-white/10 text-slate-300 hover:bg-white/5'
+                }`}
               >
-                {opt.text}
+                {opt.image && (
+                  <div className="w-full sm:w-28 aspect-video sm:aspect-square rounded-lg overflow-hidden border border-white/5 shrink-0 bg-black/30">
+                    <img 
+                      src={getFullImageUrl(opt.image)} 
+                      alt={opt.text || 'Option'} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <span className="text-base font-semibold">{opt.text}</span>
               </button>
             ))}
           </div>

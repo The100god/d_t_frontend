@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Trash2, Save, X, Upload } from 'lucide-react';
 import DrawingCanvas from '../components/DrawingCanvas';
+import ImageUploadAndCapture from '../components/ImageUploadAndCapture';
 
 const CreateQuiz = () => {
   const [title, setTitle] = useState('');
@@ -17,10 +18,11 @@ const CreateQuiz = () => {
       type,
       text: '',
       options: type === 'MCQ' ? [
-        { text: '', isCorrect: true },
-        { text: '', isCorrect: false }
+        { text: '', image: '', isCorrect: true },
+        { text: '', image: '', isCorrect: false }
       ] : [],
       correctAnswer: '',
+      imageHint: '',
       marks: 1,
     };
     setQuestions([...questions, newQuestion]);
@@ -49,7 +51,7 @@ const CreateQuiz = () => {
 
   const addOption = (qIndex) => {
     const updated = [...questions];
-    updated[qIndex].options.push({ text: '', isCorrect: false });
+    updated[qIndex].options.push({ text: '', image: '', isCorrect: false });
     setQuestions(updated);
   };
 
@@ -113,13 +115,24 @@ const CreateQuiz = () => {
                 Question {qIndex + 1} • {q.type.replace('_', ' ')}
               </div>
 
-              <input 
-                className="input-field text-lg font-medium" 
-                placeholder="Enter question text here..."
-                value={q.text}
-                onChange={(e) => updateQuestion(qIndex, 'text', e.target.value)}
-                required
-              />
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                <div className="md:col-span-3">
+                  <input 
+                    className="input-field text-lg font-medium" 
+                    placeholder="Enter question text here..."
+                    value={q.text}
+                    onChange={(e) => updateQuestion(qIndex, 'text', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="md:col-span-1">
+                  <ImageUploadAndCapture 
+                    value={q.imageHint} 
+                    onChange={(val) => updateQuestion(qIndex, 'imageHint', val)}
+                    label="Add Question Image"
+                  />
+                </div>
+              </div>
 
               <div className="flex items-center gap-4">
                 <div className="flex-1 space-y-1">
@@ -144,17 +157,27 @@ const CreateQuiz = () => {
                         name={`correct-${qIndex}`} 
                         checked={opt.isCorrect}
                         onChange={() => updateOption(qIndex, oIndex, 'isCorrect', true)}
+                        className="cursor-pointer"
                       />
-                      <input 
-                        className="input-field" 
-                        placeholder={`Option ${oIndex + 1}`}
-                        value={opt.text}
-                        onChange={(e) => updateOption(qIndex, oIndex, 'text', e.target.value)}
-                        required
-                      />
+                      <div className="flex-grow">
+                        <input 
+                          className="input-field" 
+                          placeholder={`Option ${oIndex + 1}`}
+                          value={opt.text}
+                          onChange={(e) => updateOption(qIndex, oIndex, 'text', e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="shrink-0">
+                        <ImageUploadAndCapture 
+                          value={opt.image} 
+                          onChange={(val) => updateOption(qIndex, oIndex, 'image', val)}
+                          label="Add Option Image"
+                        />
+                      </div>
                     </div>
                   ))}
-                  <button type="button" onClick={() => addOption(qIndex)} className="text-sm text-vibrant-secondary hover:underline">+ Add Option</button>
+                  <button type="button" onClick={() => addOption(qIndex)} className="text-sm text-vibrant-secondary hover:underline cursor-pointer">+ Add Option</button>
                 </div>
               )}
 

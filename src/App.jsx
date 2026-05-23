@@ -11,6 +11,7 @@ import AttemptQuiz from './pages/AttemptQuiz';
 import StudentResults from './pages/StudentResults';
 import QuizStats from './pages/QuizStats';
 import Profile from './pages/Profile';
+import Library from './pages/Library';
 import Navbar from './components/Navbar';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -55,6 +56,7 @@ const App = () => {
             <Route path="/attempt-quiz/:id" element={<ProtectedRoute><AttemptQuiz /></ProtectedRoute>} />
             <Route path="/results/:id" element={<ProtectedRoute><StudentResults /></ProtectedRoute>} />
             <Route path="/quiz-stats/:id" element={<ProtectedRoute adminOnly><QuizStats /></ProtectedRoute>} />
+            <Route path="/library" element={<ProtectedRoute adminOnly><Library /></ProtectedRoute>} />
           </Routes>
         </div>
       </Router>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User, LayoutDashboard, Menu, X } from 'lucide-react';
+import { LogOut, User, LayoutDashboard, Menu, X, Image } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const Navbar = () => {
@@ -34,6 +34,12 @@ const Navbar = () => {
             <User size={18} />
             Profile
           </Link>
+          {user.role === 'admin' && (
+            <Link to="/library" className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
+              <Image size={18} />
+              Library
+            </Link>
+          )}
           <button
             onClick={handleLogout}
             className="text-red-400 hover:text-red-300 transition-colors flex items-center gap-2 text-sm font-medium ml-4 cursor-pointer"
@@ -72,6 +78,16 @@ const Navbar = () => {
             <User size={18} />
             Profile
           </Link>
+          {user.role === 'admin' && (
+            <Link
+              to="/library"
+              onClick={() => setIsOpen(false)}
+              className="text-slate-400 hover:text-white transition-colors flex items-center gap-3 text-sm font-medium py-2 px-3 hover:bg-white/5 rounded-xl"
+            >
+              <Image size={18} />
+              Library
+            </Link>
+          )}
           <button
             onClick={() => {
               setIsOpen(false);
