@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Mail, ArrowLeft, KeyRound } from 'lucide-react';
 
 const ForgotPassword = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -22,6 +23,13 @@ const ForgotPassword = () => {
       setMessage(res.data.message);
       if (res.data.debugResetUrl) {
         setDebugLink(res.data.debugResetUrl);
+      }
+      
+      // Automatically redirect to the reset password page using the token from the response
+      if (res.data.token) {
+        setTimeout(() => {
+          navigate(`/reset-password?token=${res.data.token}`);
+        }, 1500); // 1.5 second elegant delay so user can see the success message
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong. Please try again.');

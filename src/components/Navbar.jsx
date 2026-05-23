@@ -1,13 +1,45 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User, LayoutDashboard, Menu, X, Image } from 'lucide-react';
+import { LogOut, User, LayoutDashboard, Menu, X, Image, Download } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+
+  React.useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+      window.deferredPrompt = e; // Store globally for other page accesses
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstallable(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    const promptEvent = deferredPrompt || window.deferredPrompt;
+    if (!promptEvent) return;
+    promptEvent.prompt();
+    const { outcome } = await promptEvent.userChoice;
+    console.log(`PWA Installation Choice: ${outcome}`);
+    setDeferredPrompt(null);
+    window.deferredPrompt = null;
+    setIsInstallable(false);
+  };
 
   const handleLogout = () => {
     logout();
@@ -39,6 +71,15 @@ const Navbar = () => {
               <Image size={18} />
               Library
             </Link>
+          )}
+          {isInstallable && (
+            <button
+              onClick={handleInstallApp}
+              className="text-vibrant-primary hover:text-white bg-vibrant-primary/10 hover:bg-vibrant-primary px-3 py-1.5 rounded-xl border border-vibrant-primary/20 flex items-center gap-1.5 text-xs font-bold transition-all duration-300 cursor-pointer animate-pulse ml-2"
+            >
+              <Download size={14} />
+              Install App
+            </button>
           )}
           <button
             onClick={handleLogout}
@@ -87,6 +128,18 @@ const Navbar = () => {
               <Image size={18} />
               Library
             </Link>
+          )}
+          {isInstallable && (
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                handleInstallApp();
+              }}
+              className="w-full text-vibrant-primary hover:text-white transition-colors flex items-center gap-3 text-sm font-bold py-2 px-3 bg-vibrant-primary/10 rounded-xl text-left cursor-pointer animate-pulse"
+            >
+              <Download size={18} />
+              Install Mobile App
+            </button>
           )}
           <button
             onClick={() => {
