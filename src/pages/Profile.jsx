@@ -33,14 +33,14 @@ const Profile = () => {
   return (
     <div className="container mx-auto p-6 max-w-2xl">
       <h1 className="text-3xl font-bold text-white mb-8">User Profile</h1>
-      
+
       <div className="glass-card p-8 space-y-8">
         <div className="flex items-center gap-6">
           <div className="w-20 h-20 bg-vibrant-primary/20 rounded-full flex items-center justify-center text-vibrant-primary">
             <User size={40} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">{user.email.split('@')[0]}</h2>
+            <h2 className="text-2xl font-bold text-white">{user.name}</h2>
             <p className="text-slate-400 capitalize">{user.role}</p>
           </div>
         </div>
@@ -61,7 +61,7 @@ const Profile = () => {
               <p className="font-medium capitalize">{user.role}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4 text-slate-300">
             <Calendar className="text-emerald-500" size={20} />
             <div>
@@ -78,11 +78,10 @@ const Profile = () => {
             <button
               type="button"
               onClick={() => handleThemeChange('dark')}
-              className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all cursor-pointer font-bold ${
-                themeMode === 'dark'
+              className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all cursor-pointer font-bold ${themeMode === 'dark'
                   ? 'bg-vibrant-primary/20 border-vibrant-primary text-white shadow-lg shadow-vibrant-primary/10'
                   : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
-              }`}
+                }`}
             >
               <Moon size={20} />
               <span>Dark Mode</span>
@@ -90,11 +89,10 @@ const Profile = () => {
             <button
               type="button"
               onClick={() => handleThemeChange('light')}
-              className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all cursor-pointer font-bold ${
-                themeMode === 'light'
+              className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all cursor-pointer font-bold ${themeMode === 'light'
                   ? 'bg-white border-vibrant-primary text-slate-900 shadow-lg shadow-black/5'
                   : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
-              }`}
+                }`}
             >
               <Sun size={20} />
               <span>Light Mode</span>
@@ -104,7 +102,7 @@ const Profile = () => {
 
         <div className="pt-6 border-t border-white/5">
           <p className="text-slate-500 text-sm italic">
-            You are currently logged in as a {user.role}. 
+            You are currently logged in as a {user.role}.
             {user.role === 'admin' ? ' You have full access to create and manage quizzes.' : ' You can attempt quizzes and view your graded results.'}
           </p>
         </div>

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Camera, Upload, Trash2, Image, RotateCw, X, Check, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const ImageUploadAndCapture = ({ value, onChange, label = 'Add Image', className = '' }) => {
+const ImageUploadAndCapture = ({ value, onChange, label = 'Add Image', className = '', multiple = false }) => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('upload'); // 'upload' | 'camera' | 'library'
@@ -105,13 +105,19 @@ const ImageUploadAndCapture = ({ value, onChange, label = 'Add Image', className
     setIsOpen(false);
   };
 
-  const handleUploadFile = async (file) => {
-    if (!file) return;
+  const handleUploadFile = async (fileOrFiles) => {
+    if (!fileOrFiles) return;
     setIsLoading(true);
     setError('');
     
     const formData = new FormData();
-    formData.append('image', file);
+    if (multiple && Array.isArray(fileOrFiles)) {
+      fileOrFiles.forEach(file => {
+        formData.append('images', file);
+      });
+    } else {
+      formData.append('image', fileOrFiles);
+    }
     
     try {
       const endpoint = user?.role === 'admin' 
@@ -122,8 +128,11 @@ const ImageUploadAndCapture = ({ value, onChange, label = 'Add Image', className
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      // /api/media/upload returns media object {url, publicId...}, /api/submissions/upload returns {imageUrl}
-      const finalUrl = res.data.url || res.data.imageUrl;
+      // Handle array of uploads response or single object
+      const finalUrl = Array.isArray(res.data)
+        ? res.data[res.data.length - 1]?.url
+        : (res.data.url || res.data.imageUrl);
+        
       onChange(finalUrl);
       handleClose();
     } catch (err) {
@@ -244,12 +253,12 @@ const ImageUploadAndCapture = ({ value, onChange, label = 'Add Image', className
             <h3 className="text-xl font-bold text-white mb-6">Select Image Source</h3>
 
             {/* Tabs */}
-            <div className="flex border-b border-white/10 mb-6">
+            <div className="flex overflow-x-auto scrollbar-none border-b border-white/10 mb-6 w-full whitespace-nowrap">
               {user?.role === 'admin' && (
                 <button
                   type="button"
                   onClick={() => setActiveTab('library')}
-                  className={`px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+                  className={`px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
                     activeTab === 'library' ? 'border-vibrant-primary text-vibrant-primary' : 'border-transparent text-slate-400 hover:text-white'
                   }`}
                 >
@@ -260,7 +269,7 @@ const ImageUploadAndCapture = ({ value, onChange, label = 'Add Image', className
               <button
                 type="button"
                 onClick={() => setActiveTab('upload')}
-                className={`px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
                   activeTab === 'upload' ? 'border-vibrant-primary text-vibrant-primary' : 'border-transparent text-slate-400 hover:text-white'
                 }`}
               >
@@ -270,7 +279,7 @@ const ImageUploadAndCapture = ({ value, onChange, label = 'Add Image', className
               <button
                 type="button"
                 onClick={() => setActiveTab('camera')}
-                className={`px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
                   activeTab === 'camera' ? 'border-vibrant-primary text-vibrant-primary' : 'border-transparent text-slate-400 hover:text-white'
                 }`}
               >
@@ -331,13 +340,25 @@ const ImageUploadAndCapture = ({ value, onChange, label = 'Add Image', className
                 <div className="flex-grow flex flex-col items-center justify-center">
                   <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/10 hover:border-vibrant-primary/50 rounded-2xl p-8 bg-white/5 w-full h-[250px] cursor-pointer hover:bg-white/[0.08] transition-all duration-300">
                     <Upload className="mb-4 text-vibrant-primary animate-bounce" size={40} />
-                    <span className="text-sm font-bold text-white mb-1">Click to Upload Image</span>
-                    <span className="text-xs text-slate-400">Supports JPEG, PNG, and JPG (Max 5MB)</span>
+                    <span className="text-sm font-bold text-white mb-1">
+                      {multiple ? 'Click to Upload Multiple Images' : 'Click to Upload Image'}
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      {multiple ? 'Supports dragging & selecting multiple JPEG, PNG, or JPG files' : 'Supports JPEG, PNG, and JPG (Max 5MB)'}
+                    </span>
                     <input 
                       type="file" 
                       accept="image/jpeg,image/png,image/jpg" 
                       className="hidden" 
-                      onChange={(e) => handleUploadFile(e.target.files[0])}
+                      multiple={multiple}
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files);
+                        if (multiple) {
+                          handleUploadFile(files);
+                        } else {
+                          handleUploadFile(files[0]);
+                        }
+                      }}
                       disabled={isLoading}
                     />
                   </label>
